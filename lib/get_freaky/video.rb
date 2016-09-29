@@ -40,7 +40,19 @@ class Video
 
   def download
     puts "downloading #{title}"
-    YoutubeDL.download url, { output: "#{title}.mp4" }
+    YoutubeDL.download url, { output: filename }
+  rescue Cocaine::ExitStatusError => e
+    if e.message.match(/YouTube said\: This video does not exist/)
+      puts "YouTube said: This video does not exist."
+      return
+    elsif e.message.match(/content too short/)
+      puts "YouTube returned too short content - retry"
+      download
+    end
+
+    p e.message
+    puts
+    raise e
   end
 
   def event
@@ -60,6 +72,10 @@ class Video
   end
 
   private
+
+  def filename
+    "#{title.slugify.gsub("---", "-").gsub("--", "-").chomp('-').chomp(',')}.mp4"
+  end
 
   def self.create_video(response, event_short_code=nil)
     Video.new(

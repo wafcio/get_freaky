@@ -50,8 +50,8 @@ class Event
     response = HTTParty.get("#{BASE_URI}/events/#{short_code}/videos.json")
     videos = []
     if response.success?
-      response.each do |video|
-        videos << Video.find(short_code, video["title"])
+      response.compact.each do |video|
+        videos << Video.new(video["title"], video["abstract"], video["host"], video["embed_code"], short_code)
       end
       return videos
     else
